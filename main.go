@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
+	"os"
 	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -28,26 +29,45 @@ func (sg Stratagem) getKeys() []int {
 		case "r":
 			out = append(out, rl.KeyRight)
 		default:
-			fmt.Printf("error: while getting keys for Stratagem '%s', found illegal direction '%s'", sg.name, dir)
+			fmt.Printf("error: while getting keys for Stratagem '%s', found illegal direction '%s'\n", sg.name, dir)
+			os.Exit(0)
 		}
 	}
 	return out
 }
 
 var stratagemPool = []Stratagem{
-	{"MG-43 Machine Gun", "dldur", "Supply"},
-	{"APW-1 Anti-Materiel Rifle", "dlrud", "Supply"},
-	{"M-105 Stalwart", "dlduul", "Supply"},
-	{"EAT-17 Expendable Anti-Tank", "ddlur", "Supply"},
-	{"GR-8 Recoilless Rifle", "dlrrl", "Supply"},
+	// Patriotic Administration Center
+	{"MG-43 Machine Gun", "dldur", "Patriotic Administration Center"},
+	{"APW-1 Anti-Materiel Rifle", "dlrud", "Patriotic Administration Center"},
+	{"M-105 Stalwart", "dlduul", "Patriotic Administration Center"},
+	{"EAT-17 Expendable Anti-Tank", "ddlur", "Patriotic Administration Center"},
+	{"GR-8 Recoilless Rifle", "dlrrl", "Patriotic Administration Center"},
+
+	{"FLAM-40 Flamethrower", "dludu", "Patriotic Administration Center"},
+
+	{"AC-8 Autocannon", "dlduur", "Patriotic Administration Center"},
+
+	{"MG-206 Heavy Machine Gun", "dludd", "Patriotic Administration Center"},
+
+	{"RS-422 Railgun", "drdulr", "Patriotic Administration Center"},
+
+	{"FAF-14 Spear", "ddudd", "Patriotic Administration Center"},
+
+	//{"", "", "Orbital Cannons"},
 }
 
-func shuffleStratagems(sPool []Stratagem) []Stratagem {
-	var out = make([]Stratagem, len(sPool))
+func shuffleStratagems(sPool []Stratagem, limit int) []Stratagem {
+	var out = make([]Stratagem, limit)
 
 	perm := rand.Perm(len(sPool))
+	//fmt.Printf("perm: %v\n", perm)
 	for i, v := range perm {
-		out[v] = sPool[i]
+		//fmt.Printf("i: %v, v: %v\n", i, v)
+		if i > limit-1 {
+			break
+		}
+		out[i] = sPool[v]
 	}
 	return out
 }
@@ -102,11 +122,11 @@ func main() {
 
 	var currentKey int = 0
 
-	fmt.Println(stratagemPool)
+	//fmt.Println(stratagemPool)
 
-	var stratagems []Stratagem = shuffleStratagems(stratagemPool)
+	var stratagems []Stratagem = shuffleStratagems(stratagemPool, 5)
 
-	fmt.Println(stratagemPool)
+	//fmt.Println(stratagemPool)
 
 	var cSDirs []int = stratagems[currentStratagem].getKeys()
 
@@ -126,6 +146,8 @@ func main() {
 				redTick = 0
 				currentStratagem = 0
 				currentKey = 0
+				stratagems = shuffleStratagems(stratagemPool, 5)
+				cSDirs = stratagems[currentStratagem].getKeys()
 				lost = false
 			}
 		} else {
@@ -133,7 +155,7 @@ func main() {
 				currentStratagem = 0
 				currentKey = 0
 				timer = 100
-				stratagems = shuffleStratagems(stratagemPool)
+				stratagems = shuffleStratagems(stratagemPool, 5)
 				cSDirs = stratagems[currentStratagem].getKeys()
 			} else {
 				if currentKey >= len(cSDirs) {
@@ -153,7 +175,7 @@ func main() {
 				} else if gottenKey != rl.KeyEscape && gottenKey != 0 {
 					//fmt.Println(rl.GetKeyPressed())
 					currentKey = 0
-					redTick = 10
+					//redTick = 20
 				}
 			}
 
@@ -178,53 +200,45 @@ func main() {
 
 			rl.DrawText(fmt.Sprintf("%v/%v", currentStratagem+1, len(stratagems)), 20, 20, 20, rl.White)
 
+			rl.DrawText("score:", 20, 50, 20, rl.White)
+
+			rl.DrawText(fmt.Sprint(score), 20, 70, 20, rl.White)
+
 			for i, dir := range stratagems[currentStratagem].code {
+				arrowColor := rl.White
 				if currentKey > i {
 					if redTick > 0 {
-						//rl.DrawText(string(dir), int32((50-len(stratagems[currentStratagem].code))+(i*20)), 100, 20, rl.Red)
-						switch dir {
-						case 'u':
-							DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Red)
-						case 'd':
-							DrawDownArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Red)
-						case 'l':
-							DrawLeftArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Red)
-						case 'r':
-							DrawRightArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Red)
-						default:
-							DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Magenta)
-						}
+						arrowColor = rl.Red
 					} else {
-						//rl.DrawText(string(dir), int32((50-len(stratagems[currentStratagem].code))+(i*20)), 100, 20, HelldiversYellow)
-						switch dir {
-						case 'u':
-							DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), HelldiversYellow)
-						case 'd':
-							DrawDownArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), HelldiversYellow)
-						case 'l':
-							DrawLeftArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), HelldiversYellow)
-						case 'r':
-							DrawRightArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), HelldiversYellow)
-						default:
-							DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Magenta)
-						}
-					}
-				} else {
-					//rl.DrawText(string(dir), int32((50-len(stratagems[currentStratagem].code))+(i*20)), 100, 20, rl.White)
-					switch dir {
-					case 'u':
-						DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.White)
-					case 'd':
-						DrawDownArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.White)
-					case 'l':
-						DrawLeftArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.White)
-					case 'r':
-						DrawRightArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.White)
-					default:
-						DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Magenta)
+						arrowColor = HelldiversYellow
 					}
 				}
+				//rl.DrawText(string(dir), int32((50-len(stratagems[currentStratagem].code))+(i*20)), 100, 20, rl.Red)
+				switch dir {
+				case 'u':
+					DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), arrowColor)
+				case 'd':
+					DrawDownArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), arrowColor)
+				case 'l':
+					DrawLeftArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), arrowColor)
+				case 'r':
+					DrawRightArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), arrowColor)
+				default:
+					DrawUpArrow(float32((arrowsX-len(stratagems[currentStratagem].code))+(i*arrowsSpacing)), float32(arrowsY), rl.Magenta)
+				}
 			}
+
+			stratagemIconColor := rl.Magenta
+			switch stratagems[currentStratagem].kind {
+			case "Patriotic Administration Center":
+				stratagemIconColor = color.RGBA{73, 173, 201, 255}
+			}
+
+			rl.DrawRectangle((windowX/2)-227, 280, 120, 120, stratagemIconColor)
+
+			rl.DrawText(stratagems[currentStratagem].name, (windowX/2)-100, 290, 30, rl.White)
+
+			rl.DrawText(stratagems[currentStratagem].kind, (windowX/2)-100, 320, 23, rl.White)
 
 			//fmt.Println(timer)
 
@@ -240,7 +254,7 @@ func main() {
 				timerTick++
 			}
 
-			rl.DrawRectangle(int32(windowX/2)-215, 550, int32(timer*4), 35, HelldiversYellow)
+			rl.DrawRectangle((windowX/2)-215, 550, int32(timer*4), 35, HelldiversYellow)
 		}
 
 		rl.EndDrawing()
